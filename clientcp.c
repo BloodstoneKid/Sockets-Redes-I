@@ -49,11 +49,18 @@ char *argv[];
 	int addrlen, i, j, errcode;
     /* This example uses TAM_BUFFER byte messages. */
 	char buf[TAM_BUFFER];
+    FILE *archivo;
 
 	if (argc != 2) {
-		fprintf(stderr, "Usage:  %s <remote host>\n", argv[0]);
+		fprintf(stderr, "Uso:  %s <host> <fichero de ordenes>\n", argv[0]);
 		exit(1);
 	}
+
+    archivo = fopen(argv[2],"r");
+    if(archivo==NULL){
+        perror("Error al abrir el archivo");
+        exit(EXIT_FAILURE );
+    }
 
 	/* Create the socket. */
 	s = socket (AF_INET, SOCK_STREAM, 0);
@@ -125,124 +132,20 @@ char *argv[];
 	printf("Connected to %s on port %u at %s",
 			argv[1], ntohs(myaddr_in.sin_port), (char *) ctime(&timevar));
 
+    while (fgets(buf, sizeof(buf), archivo)) {
+        if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
+			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
+			fprintf(stderr, "on send number %d\n", i);
+			exit(1);
+		}
+    }    
 
-	snprintf(buf, sizeof(buf), "HOLA\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	
-	snprintf(buf, sizeof(buf), "RESPUESTA 1942\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "RESPUESTA 2\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "RESPUESTA 5555\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "RESPUESTA 8\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "RESPUESTA 9999\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "+\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "RESPUESTA 1492\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "aaa\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "+\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "RESPUESTA 5\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	snprintf(buf, sizeof(buf), "ADIOS\n");
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-
-	/*
-	for (i=1; i<=5; i++) {
-
-		snprintf(buf, sizeof(buf), "Hola%d\n", i);
-		//*buf = i;
-		if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER) {
-			fprintf(stderr, "%s: Connection aborted on error ",	argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-	}
-	*/
-
-		/* Now, shutdown the connection for further sends.
-		 * This will cause the server to receive an end-of-file
-		 * condition after it has received all the requests that
-		 * have just been sent, indicating that we will not be
-		 * sending any further requests.
-		 */
 	if (shutdown(s, 1) == -1) {
 		perror(argv[0]);
 		fprintf(stderr, "%s: unable to shutdown socket\n", argv[0]);
 		exit(1);
 	}
 
-		/* Now, start receiving all of the replys from the server.
-		 * This loop will terminate when the recv returns zero,
-		 * which is an end-of-file condition.  This will happen
-		 * after the server has sent all of its replies, and closed
-		 * its end of the connection.
-		 */
 
 	char mensaje[TAM_BUFFER];
 
@@ -252,8 +155,6 @@ char *argv[];
 			fprintf(stderr, "%s: error reading result\n", argv[0]);
 			exit(1);
 		}
-
-		// Leer hasta encontrar '\n' o '\r'
 
 			char *newline = memchr(buf, '\n', i);
 			char *carriage_return = memchr(buf, '\r', i);
@@ -267,10 +168,8 @@ char *argv[];
             snprintf(mensaje, sizeof(mensaje), "%.*s", message_length, buf);
 
 			/* Print out message indicating the identity of this reply. */
-		printf("CLIENTE - MENSAJE RECIBIDO: %s\n",mensaje);
+		printf("%s\n",mensaje);
 	}
 
-    /* Print message indicating completion of task. */
-	time(&timevar);
-	printf("CLIENTE: All done at %s", (char *)ctime(&timevar));
+    fclose(archivo);
 }
